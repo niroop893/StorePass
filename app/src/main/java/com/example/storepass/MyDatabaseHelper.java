@@ -29,6 +29,7 @@ public class MyDatabaseHelper extends SQLiteOpenHelper {
         db.execSQL(createUserTable);
     }
 
+
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER);
