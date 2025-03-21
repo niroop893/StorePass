@@ -24,9 +24,9 @@ public class TabularActivity extends AppCompatActivity {
         listPassword = findViewById(R.id.listPassword);
 
         // Sample data
-        vendorList.add("Vendor A");
-        vendorList.add("Vendor B");
-        vendorList.add("Vendor C");
+        vendorList.add("Gmail");
+        vendorList.add("Facebook");
+        vendorList.add("Watsapp");
 
         userList.add("User1");
         userList.add("User2");
