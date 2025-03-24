@@ -1,40 +1,57 @@
-package com.example.storepass;
+package com.example.storepass
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent
+import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.example.storepass.data.DatabaseHelper
+import android.util.Log
 
-public class LoginActivity extends AppCompatActivity {
+class LoginActivity : AppCompatActivity() {
+    private lateinit var dbHelper: DatabaseHelper
+    private lateinit var usernameInput: EditText
+    private lateinit var passwordInput: EditText
+    private lateinit var loginButton: Button
+    private lateinit var registerLink: TextView
 
-    private EditText editTextUsername, editTextPassword;
-    private Button buttonLogin;
-    private MyDatabaseHelper dbHelper; // Add this
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_login)
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        dbHelper = DatabaseHelper(this)
 
-        dbHelper = new MyDatabaseHelper(this); // Initialize database helper
+        usernameInput = findViewById(R.id.usernameInput)
+        passwordInput = findViewById(R.id.passwordInput)
+        loginButton = findViewById(R.id.loginButton)
+        registerLink = findViewById(R.id.registerLink)
 
-        editTextUsername = findViewById(R.id.editTextUsername);
-        editTextPassword = findViewById(R.id.editTextPassword);
-        buttonLogin = findViewById(R.id.buttonLogin);
+        loginButton.setOnClickListener {
+            val username = usernameInput.text.toString()
+            val password = passwordInput.text.toString()
 
-        buttonLogin.setOnClickListener(view -> {
-            String username = editTextUsername.getText().toString();
-            String password = editTextPassword.getText().toString();
-
-            if (dbHelper.checkUserCredentials(username, password)) {
-                Intent intent = new Intent(LoginActivity.this, TabularActivity.class);
-                startActivity(intent);
+            if (username.isNotEmpty() && password.isNotEmpty()) {
+                if (dbHelper.authenticateUser(username, password)) {
+                    val userId = dbHelper.getUserId(username)
+                    val intent = Intent(this, MainActivity::class.java).apply {
+                        putExtra("USER_ID", userId)
+                        putExtra("USERNAME", username)
+                    }
+                    startActivity(intent)
+                    finish()
+                } else {
+                    Toast.makeText(this, "Invalid username or password", Toast.LENGTH_SHORT).show()
+                }
             } else {
-                Toast.makeText(LoginActivity.this, "Invalid credentials", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
             }
-        });
+        }
+
+        registerLink.setOnClickListener {
+            val intent = Intent(this, RegisterActivity::class.java)
+            startActivity(intent)
+        }
     }
 }

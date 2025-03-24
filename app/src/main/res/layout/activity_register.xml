@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginBottom="32dp"
-                android:text="StorePass"
+                android:text="Create Account"
                 android:textAppearance="@style/TextAppearance.App.Headline" />
 
             <com.google.android.material.textfield.TextInputLayout
@@ -54,7 +54,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="16dp"
                 android:hint="Password"
                 app:endIconMode="password_toggle"
                 app:startIconDrawable="@drawable/ic_lock">
@@ -67,24 +67,30 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/loginButton"
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:text="Login" />
+                android:layout_marginBottom="24dp"
+                android:hint="Confirm Password"
+                app:endIconMode="password_toggle"
+                app:startIconDrawable="@drawable/ic_lock">
 
-            <TextView
-                android:id="@+id/registerLink"
-                android:layout_width="wrap_content"
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/confirmPasswordInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/registerButton"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="Don't have an account? Register here"
-                android:textAppearance="@style/TextAppearance.App.Subtitle"
-                android:textColor="@color/primary" />
+                android:text="Register" />
 
         </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout> 

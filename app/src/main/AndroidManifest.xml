@@ -13,24 +13,22 @@
         android:theme="@style/Theme.StorePass"
         tools:targetApi="31">
         <activity
-            android:name=".MyDatabaseHelper"
-            android:exported="false" />
-        <activity
-            android:name=".MainActivity"
+            android:name=".LoginActivity"
             android:exported="true"
-            android:theme="@style/Theme.StorePass">
+            android:theme="@style/Theme.StorePass.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LoginActivity"
-            android:label="Login Page"
-            android:parentActivityName=".MainActivity"/>
-        <activity android:name=".RegistrationActivity"
-            android:label="Registration Page"
-            android:parentActivityName=".MainActivity"/>
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StorePass.NoActionBar" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.StorePass.NoActionBar" />
         <activity android:name=".TabularActivity"
             android:label="Tabular Page"
             android:parentActivityName=".MainActivity"/>

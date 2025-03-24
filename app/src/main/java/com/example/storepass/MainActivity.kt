@@ -1,60 +1,169 @@
-package com.example.storepass;
+package com.example.storepass
 
-import android.content.Intent;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import com.example.storepass.databinding.ActivityMainBinding;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import android.os.Bundle
+import android.widget.EditText
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.storepass.data.Credential
+import com.example.storepass.data.DatabaseHelper
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-public class MainActivity extends AppCompatActivity {
-    private ActivityMainBinding binding;
-    private Button buttonLogin;
-    private Button buttonRegister;
-    private Button buttonViewData;
+class MainActivity : AppCompatActivity() {
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+    private lateinit var dbHelper: DatabaseHelper
+    private lateinit var credentialsList: RecyclerView
+    private lateinit var adapter: CredentialAdapter
+    private var userId: Long = -1
+    private var username: String = ""
 
-        Toolbar toolbar = binding.toolbar;
-        setSupportActionBar(toolbar);
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-        FloatingActionButton fab = binding.fab;
-        fab.setOnClickListener(view -> {
-            Intent intent = new Intent(MainActivity.this, RegistrationActivity.class);
-            startActivity(intent);
-        });
+        // Get user ID from intent
+        userId = intent.getLongExtra("USER_ID", -1)
+        username = intent.getStringExtra("USERNAME") ?: ""
 
-        // Initialize buttons
-        buttonLogin = findViewById(R.id.buttonLogin);
-        buttonRegister = findViewById(R.id.buttonRegister);
-        buttonViewData = findViewById(R.id.buttonViewData);
-
-        // Set onClick listeners for the buttons
-        if (buttonLogin != null) {
-            buttonLogin.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-                startActivity(intent);
-            });
+        if (userId == -1L) {
+            finish()
+            return
         }
 
-        if (buttonRegister != null) {
-            buttonRegister.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, RegistrationActivity.class);
-                startActivity(intent);
-            });
+        // Initialize database helper
+        dbHelper = DatabaseHelper(this)
+
+        // Set up RecyclerView
+        credentialsList = findViewById(R.id.credentialsRecyclerView)
+        credentialsList.layoutManager = LinearLayoutManager(this)
+        adapter = CredentialAdapter(emptyList()) { credential ->
+            showCredentialDetails(credential)
+        }
+        credentialsList.adapter = adapter
+
+        // Set up FAB for adding new credentials
+        val addButton = findViewById<FloatingActionButton>(R.id.addCredentialFab)
+        addButton.setOnClickListener {
+            showAddCredentialDialog()
         }
 
-        if (buttonViewData != null) {
-            buttonViewData.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, TabularActivity.class);
-                startActivity(intent);
-            });
+        // Load credentials
+        loadCredentials()
+    }
+
+    private fun loadCredentials() {
+        try {
+            val credentials = dbHelper.getCredentials(userId)
+            adapter.updateCredentials(credentials)
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error loading credentials: ${e.message}", e)
+            Toast.makeText(this, "Error loading credentials. Please try again.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun showAddCredentialDialog() {
+        try {
+            val dialogView = layoutInflater.inflate(R.layout.dialog_add_credential, null)
+            val serviceInput = dialogView.findViewById<EditText>(R.id.serviceInput)
+            val usernameInput = dialogView.findViewById<EditText>(R.id.usernameInput)
+            val passwordInput = dialogView.findViewById<EditText>(R.id.passwordInput)
+
+            AlertDialog.Builder(this)
+                .setTitle("Add New Credential")
+                .setView(dialogView)
+                .setPositiveButton("Add") { _, _ ->
+                    val service = serviceInput.text.toString()
+                    val username = usernameInput.text.toString()
+                    val password = passwordInput.text.toString()
+
+                    if (service.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty()) {
+                        try {
+                            val id = dbHelper.addCredential(userId, service, username, password)
+                            if (id != -1L) {
+                                Toast.makeText(this, "Credential added successfully", Toast.LENGTH_SHORT).show()
+                                loadCredentials()
+                            } else {
+                                Toast.makeText(this, "Failed to add credential", Toast.LENGTH_SHORT).show()
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("MainActivity", "Error adding credential: ${e.message}", e)
+                            Toast.makeText(this, "Error adding credential. Please try again.", Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error showing add credential dialog: ${e.message}", e)
+            Toast.makeText(this, "Error showing dialog. Please try again.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun showCredentialDetails(credential: Credential) {
+        try {
+            AlertDialog.Builder(this)
+                .setTitle(credential.service)
+                .setMessage("""
+                    Username: ${credential.username}
+                    Password: ${credential.password}
+                """.trimIndent())
+                .setPositiveButton("OK", null)
+                .setNeutralButton("Edit") { _, _ ->
+                    showEditCredentialDialog(credential)
+                }
+                .show()
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error showing credential details: ${e.message}", e)
+            Toast.makeText(this, "Error showing details. Please try again.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun showEditCredentialDialog(credential: Credential) {
+        try {
+            val dialogView = layoutInflater.inflate(R.layout.dialog_add_credential, null)
+            val serviceInput = dialogView.findViewById<EditText>(R.id.serviceInput)
+            val usernameInput = dialogView.findViewById<EditText>(R.id.usernameInput)
+            val passwordInput = dialogView.findViewById<EditText>(R.id.passwordInput)
+
+            // Pre-fill with existing values
+            serviceInput.setText(credential.service)
+            usernameInput.setText(credential.username)
+            passwordInput.setText(credential.password)
+
+            AlertDialog.Builder(this)
+                .setTitle("Edit Credential")
+                .setView(dialogView)
+                .setPositiveButton("Save") { _, _ ->
+                    val service = serviceInput.text.toString()
+                    val username = usernameInput.text.toString()
+                    val password = passwordInput.text.toString()
+
+                    if (service.isNotEmpty() && username.isNotEmpty() && password.isNotEmpty()) {
+                        try {
+                            val success = dbHelper.updateCredential(credential.id, service, username, password)
+                            if (success) {
+                                Toast.makeText(this, "Credential updated successfully", Toast.LENGTH_SHORT).show()
+                                loadCredentials()
+                            } else {
+                                Toast.makeText(this, "Failed to update credential. Please try again.", Toast.LENGTH_LONG).show()
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("MainActivity", "Error updating credential: ${e.message}", e)
+                            Toast.makeText(this, "Error updating credential. Please try again.", Toast.LENGTH_LONG).show()
+                        }
+                    } else {
+                        Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error showing edit credential dialog: ${e.message}", e)
+            Toast.makeText(this, "Error showing dialog. Please try again.", Toast.LENGTH_LONG).show()
         }
     }
 }
