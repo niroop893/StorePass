@@ -87,11 +87,12 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun deleteCredential(credentialId: Long): Boolean {
         val db = this.writableDatabase
-        return db.delete(
+        val result = db.delete(
             TABLE_CREDENTIALS,
             "$COLUMN_CREDENTIAL_ID = ?",
             arrayOf(credentialId.toString())
-        ) > 0
+        )
+        return result > 0
     }
 
     fun authenticateUser(username: String, password: String): Boolean {
